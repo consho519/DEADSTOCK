@@ -223,9 +223,16 @@ export default function DeadstockProcessor() {
               fMosOriginal <= targetFMos && 
               remainingMasterStock > 0) {
             
-            // Konsep "Winner Takes All": Cabang pertama yang butuh ambil SEMUA stock master
-            ambil = remainingMasterStock;
-            remainingMasterStock = 0;
+            // Konsep "Capped Allocation": Hitung batas maksimal yang bisa diambil agar F MOS <= Target
+            // targetFMos = (Stock + Ambil) / bAvgDemand => Ambil = (targetFMos * bAvgDemand) - Stock
+            // Menggunakan Math.ceil agar tetap mengambil setidaknya 1 pcs jika hasilnya pecahan positif
+            const maxKebutuhan = Math.ceil((targetFMos * bAvgDemand) - bStock);
+            
+            if (maxKebutuhan > 0) {
+              // Ambil mana yang lebih kecil: Sisa Master atau Max Kebutuhan
+              ambil = Math.min(remainingMasterStock, maxKebutuhan);
+              remainingMasterStock -= ambil;
+            }
           }
 
           // 3. Hitung FMOS Nyata Setelah Proses (Stok Lama + Ambil)
